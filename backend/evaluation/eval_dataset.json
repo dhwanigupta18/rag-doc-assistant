@@ -1,0 +1,66 @@
+{
+  "document_id": "e1a06fc2-479b-47a7-8c8a-5db2cf3619f7",
+  "document_name": "Deep_Learning_Research_Paper_23BAI10388.pdf",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "What transformer model is used for clinical text classification in this paper?",
+      "expected_pages": [1, 3]
+    },
+    {
+      "id": "q2",
+      "question": "What method is used to make the model's predictions explainable?",
+      "expected_pages": [1, 3]
+    },
+    {
+      "id": "q3",
+      "question": "What accuracy did the proposed BERT model achieve?",
+      "expected_pages": [4]
+    },
+    {
+      "id": "q4",
+      "question": "How does BERT's performance compare to LSTM in the results?",
+      "expected_pages": [4]
+    },
+    {
+      "id": "q5",
+      "question": "What optimizer was used during model training?",
+      "expected_pages": [3]
+    },
+    {
+      "id": "q6",
+      "question": "What batch size was used in the experiments?",
+      "expected_pages": [4]
+    },
+    {
+      "id": "q7",
+      "question": "What are the limitations of the proposed system?",
+      "expected_pages": [6]
+    },
+    {
+      "id": "q8",
+      "question": "What future work is suggested by the authors?",
+      "expected_pages": [6]
+    },
+    {
+      "id": "q9",
+      "question": "What frontend technologies were used to build the dashboard?",
+      "expected_pages": [3]
+    },
+    {
+      "id": "q10",
+      "question": "What is the mathematical formula for the self-attention mechanism?",
+      "expected_pages": [3]
+    },
+    {
+      "id": "q11",
+      "question": "What kind of dataset was used in this study?",
+      "expected_pages": [5, 6]
+    },
+    {
+      "id": "q12",
+      "question": "What is the loss function used to train the model?",
+      "expected_pages": [3]
+    }
+  ]
+}

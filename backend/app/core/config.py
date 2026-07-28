@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     # Vector DB
     QDRANT_URL: str = "http://localhost:6333"
+    QDRANT_API_KEY: str = ""
     QDRANT_COLLECTION: str = "document_chunks"
 
     # Auth
