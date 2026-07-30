@@ -31,3 +31,11 @@ def ensure_collection_exists() -> None:
             collection_name=settings.QDRANT_COLLECTION,
             vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
         )
+        # Qdrant Cloud (unlike local Docker Qdrant) requires an explicit
+        # index on any payload field used in a filter — without this,
+        # filtering by document_id in vector_search() fails with a 400.
+        client.create_payload_index(
+            collection_name=settings.QDRANT_COLLECTION,
+            field_name="document_id",
+            field_schema="keyword",
+        )
