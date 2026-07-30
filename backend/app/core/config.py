@@ -27,8 +27,7 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
 
     # Reranker (cross-encoder, used in Phase 3 hybrid retrieval)
-    RERANKER_MODEL: str = "BAAI/bge-reranker-base"
-
+    RERANKER_MODEL: str = "Xenova/ms-marco-MiniLM-L-6-v2"
     # File storage
     UPLOAD_DIR: str = "./uploads"
 

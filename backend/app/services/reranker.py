@@ -1,19 +1,16 @@
 """
-Cross-encoder reranking: unlike embeddings (which score query and chunk
-independently, then compare vectors), a cross-encoder looks at the query and
-chunk *together* and outputs a single relevance score. This is slower per
-pair, so we only run it on the small shortlist coming out of hybrid fusion —
-never on the full chunk set.
+Cross-encoder reranking via fastembed (ONNX Runtime) instead of
+sentence-transformers, for the same memory reasons as embeddings.py.
 """
 from functools import lru_cache
-from sentence_transformers import CrossEncoder
+from fastembed.rerank.cross_encoder import TextCrossEncoder
 
 from app.core.config import settings
 
 
 @lru_cache(maxsize=1)
-def get_reranker() -> CrossEncoder:
-    return CrossEncoder(settings.RERANKER_MODEL)
+def get_reranker() -> TextCrossEncoder:
+    return TextCrossEncoder(model_name=settings.RERANKER_MODEL)
 
 
 def rerank(query: str, candidates: list[dict]) -> list[dict]:
@@ -26,8 +23,8 @@ def rerank(query: str, candidates: list[dict]) -> list[dict]:
         return []
 
     model = get_reranker()
-    pairs = [(query, c["text"]) for c in candidates]
-    scores = model.predict(pairs)
+    documents = [c["text"] for c in candidates]
+    scores = list(model.rerank(query, documents))
 
     for c, score in zip(candidates, scores):
         c["rerank_score"] = float(score)
