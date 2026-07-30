@@ -1,6 +1,8 @@
 """
 Cross-encoder reranking via fastembed (ONNX Runtime) instead of
-sentence-transformers, for the same memory reasons as embeddings.py.
+sentence-transformers/PyTorch, for the same memory reasons as embeddings.py.
+Only runs on the small shortlist coming out of hybrid fusion, never the full
+chunk set.
 """
 from functools import lru_cache
 from fastembed.rerank.cross_encoder import TextCrossEncoder
@@ -10,7 +12,7 @@ from app.core.config import settings
 
 @lru_cache(maxsize=1)
 def get_reranker() -> TextCrossEncoder:
-    return TextCrossEncoder(model_name=settings.RERANKER_MODEL)
+    return TextCrossEncoder(model_name=settings.RERANKER_MODEL, threads=1)
 
 
 def rerank(query: str, candidates: list[dict]) -> list[dict]:
