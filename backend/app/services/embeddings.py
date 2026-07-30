@@ -1,38 +1,49 @@
 """
-Loads the embedding model once at import time and reuses it across requests.
-Uses fastembed (ONNX Runtime) instead of sentence-transformers/PyTorch — no
-GPU or GB-scale PyTorch dependency, which matters on memory-constrained free
-hosting tiers (512MB total).
+Generates embeddings via Jina AI's hosted Embeddings API instead of running
+a model locally. This removes local ML inference from the server entirely —
+important on memory-constrained free hosting, where even a "small" local
+embedding model plus its runtime was enough to exceed 512MB alongside the
+rest of the FastAPI stack.
 
-Embeddings are generated in small batches rather than all at once. On a
-memory-constrained host, embedding e.g. 20+ chunks in a single batch spikes
-peak memory considerably higher than processing them a few at a time — this
-trades a small amount of latency for a meaningfully lower memory ceiling.
+Jina's API distinguishes "passage" embeddings (for indexed document chunks)
+from "query" embeddings (for search queries) — asymmetric embedding, which
+is the correct way to use this model and can noticeably improve retrieval
+quality over treating both the same way.
 """
-from functools import lru_cache
-from fastembed import TextEmbedding
+import requests
 
 from app.core.config import settings
 
-BATCH_SIZE = 8
+JINA_API_URL = "https://api.jina.ai/v1/embeddings"
 
 
-@lru_cache(maxsize=1)
-def get_embedding_model() -> TextEmbedding:
-    return TextEmbedding(model_name=settings.EMBEDDING_MODEL, threads=1)
+def _embed(texts: list[str], task: str) -> list[list[float]]:
+    response = requests.post(
+        JINA_API_URL,
+        headers={
+            "Authorization": f"Bearer {settings.JINA_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": settings.EMBEDDING_MODEL,
+            "task": task,
+            "input": texts,
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    data = response.json()["data"]
+    # Jina returns results possibly out of order; each item carries its
+    # original index, so sort by that before extracting embeddings.
+    data.sort(key=lambda item: item["index"])
+    return [item["embedding"] for item in data]
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    """Embed a batch of texts, processed in small chunks to cap peak memory."""
-    model = get_embedding_model()
-    vectors: list[list[float]] = []
-    for i in range(0, len(texts), BATCH_SIZE):
-        batch = texts[i : i + BATCH_SIZE]
-        batch_vectors = list(model.embed(batch))
-        vectors.extend(v.tolist() for v in batch_vectors)
-    return vectors
+    """Embed document chunks (used during ingestion)."""
+    return _embed(texts, task="retrieval.passage")
 
 
 def embed_query(text: str) -> list[float]:
-    """Embed a single query string (used in Phase 3 for retrieval)."""
-    return embed_texts([text])[0]
+    """Embed a single search query (used during retrieval)."""
+    return _embed([text], task="retrieval.query")[0]

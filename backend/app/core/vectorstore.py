@@ -11,7 +11,7 @@ from app.core.config import settings
 
 # bge-small-en-v1.5 outputs 384-dimensional vectors.
 # If you change EMBEDDING_MODEL later, update this to match its output dimension.
-EMBEDDING_DIM = 384
+EMBEDDING_DIM = 1024  # jina-embeddings-v3's native output size
 
 _client: QdrantClient | None = None
 

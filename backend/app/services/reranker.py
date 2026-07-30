@@ -1,18 +1,12 @@
 """
-Cross-encoder reranking via fastembed (ONNX Runtime) instead of
-sentence-transformers/PyTorch, for the same memory reasons as embeddings.py.
-Only runs on the small shortlist coming out of hybrid fusion, never the full
-chunk set.
+Reranks candidates via Jina AI's hosted Reranker API instead of running a
+cross-encoder model locally, for the same memory reasons as embeddings.py.
 """
-from functools import lru_cache
-from fastembed.rerank.cross_encoder import TextCrossEncoder
+import requests
 
 from app.core.config import settings
 
-
-@lru_cache(maxsize=1)
-def get_reranker() -> TextCrossEncoder:
-    return TextCrossEncoder(model_name=settings.RERANKER_MODEL, threads=1)
+JINA_RERANK_URL = "https://api.jina.ai/v1/rerank"
 
 
 def rerank(query: str, candidates: list[dict]) -> list[dict]:
@@ -24,11 +18,26 @@ def rerank(query: str, candidates: list[dict]) -> list[dict]:
     if not candidates:
         return []
 
-    model = get_reranker()
     documents = [c["text"] for c in candidates]
-    scores = list(model.rerank(query, documents))
 
-    for c, score in zip(candidates, scores):
-        c["rerank_score"] = float(score)
+    response = requests.post(
+        JINA_RERANK_URL,
+        headers={
+            "Authorization": f"Bearer {settings.JINA_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": settings.RERANKER_MODEL,
+            "query": query,
+            "documents": documents,
+            "return_documents": False,
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    results = response.json()["results"]
+
+    for result in results:
+        candidates[result["index"]]["rerank_score"] = result["relevance_score"]
 
     return sorted(candidates, key=lambda c: c["rerank_score"], reverse=True)

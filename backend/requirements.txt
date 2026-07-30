@@ -15,7 +15,7 @@ pymupdf==1.24.11
 
 # Search / retrieval
 rank-bm25==0.2.2
-fastembed==0.7.1
+requests==2.32.3
 qdrant-client==1.11.2
 
 # LLM
