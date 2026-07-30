@@ -31,7 +31,8 @@ def _embed(texts: list[str], task: str) -> list[list[float]]:
         },
         timeout=30,
     )
-    response.raise_for_status()
+    if not response.ok:
+        raise RuntimeError(f"Jina embeddings API error {response.status_code}: {response.text}")
     data = response.json()["data"]
     # Jina returns results possibly out of order; each item carries its
     # original index, so sort by that before extracting embeddings.
