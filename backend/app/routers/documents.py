@@ -47,6 +47,7 @@ def get_document(
         raise HTTPException(status_code=404, detail="Document not found")
     return document
 
+@router.get("/{document_id}/file")
 def get_document_file(
     document_id: str,
     db: Session = Depends(get_db),
