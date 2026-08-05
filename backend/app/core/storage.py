@@ -9,6 +9,7 @@ they're stored in Supabase Storage instead of the container's filesystem.
 """
 from functools import lru_cache
 import boto3
+from botocore.config import Config
 
 from app.core.config import settings
 
@@ -21,6 +22,7 @@ def get_storage_client():
         aws_access_key_id=settings.SUPABASE_S3_ACCESS_KEY_ID,
         aws_secret_access_key=settings.SUPABASE_S3_SECRET_ACCESS_KEY,
         region_name="us-east-1",
+        config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
     )
 
 
