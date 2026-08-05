@@ -2,7 +2,7 @@ import os
 import uuid
 
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
@@ -12,6 +12,7 @@ from app.models.models import Document, User
 from app.schemas.schemas import DocumentOut
 from app.services.ingestion import ingest_document
 from app.services.retrieval import hybrid_search
+from app.core.storage import upload_pdf_bytes, get_presigned_url
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -64,11 +65,9 @@ def get_document_file(
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    return FileResponse(
-        path=document.file_path,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="{document.filename}"'},
-    )
+    presigned_url = get_presigned_url(document.file_path)
+    return RedirectResponse(url=presigned_url)
+
 
 
 @router.post("/upload", response_model=DocumentOut)
@@ -80,19 +79,15 @@ def upload_document(
     if not file.filename.lower().endswith(ALLOWED_EXTENSION):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-
-    # Prefix with a UUID so two users uploading "report.pdf" never collide on disk.
-    stored_filename = f"{uuid.uuid4()}_{file.filename}"
-    file_path = os.path.join(settings.UPLOAD_DIR, stored_filename)
-
-    with open(file_path, "wb") as f:
-        f.write(file.file.read())
+    # Prefix with a UUID so two users uploading "report.pdf" never collide.
+    object_key = f"uploads/{uuid.uuid4()}_{file.filename}"
+    file_bytes = file.file.read()
+    upload_pdf_bytes(object_key, file_bytes)
 
     document = Document(
         owner_id=current_user.id,
         filename=file.filename,
-        file_path=file_path,
+        file_path=object_key,  # now a Supabase Storage object key, not a local path
         status="processing",
     )
     db.add(document)

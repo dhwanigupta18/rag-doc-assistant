@@ -28,7 +28,11 @@ class Settings(BaseSettings):
     RERANKER_MODEL: str = "jina-reranker-v2-base-multilingual"
     
     # File storage
-    UPLOAD_DIR: str = "./uploads"
+    # File storage (Supabase Storage - S3-compatible)
+    SUPABASE_PROJECT_REF: str = ""
+    SUPABASE_S3_ACCESS_KEY_ID: str = ""
+    SUPABASE_S3_SECRET_ACCESS_KEY: str = ""
+    SUPABASE_BUCKET_NAME: str = "rag-doc-assistant-uploads"
 
     # CORS
     FRONTEND_ORIGIN: str = "http://localhost:3000"

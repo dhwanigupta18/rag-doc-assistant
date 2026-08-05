@@ -31,7 +31,9 @@ def ingest_document(db: Session, document: Document) -> None:
     document's status to "ready" or "failed" when done.
     """
     try:
-        blocks, page_count = extract_blocks(document.file_path)
+        from app.core.storage import download_pdf_bytes
+        file_bytes = download_pdf_bytes(document.file_path)
+        blocks, page_count = extract_blocks(file_bytes)
         chunks = build_chunks(blocks)
 
         if not chunks:

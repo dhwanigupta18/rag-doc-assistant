@@ -17,15 +17,18 @@ class ExtractedBlock:
         return f"<Block page={self.page_number} chars={len(self.text)}>"
 
 
-def extract_blocks(file_path: str) -> tuple[list[ExtractedBlock], int]:
+def extract_blocks(file_bytes: bytes) -> tuple[list[ExtractedBlock], int]:
     """
     Returns (blocks, page_count).
     Each block corresponds to one text block as detected by PyMuPDF's layout
     analysis — roughly a paragraph. We keep these as the base unit before
     chunking, since blocks already respect natural document structure better
     than a raw character-count split would.
+
+    Takes raw PDF bytes (not a file path) since the file lives in Supabase
+    Storage, not on local disk.
     """
-    doc = fitz.open(file_path)
+    doc = fitz.open(stream=file_bytes, filetype="pdf")
     blocks: list[ExtractedBlock] = []
 
     for page_index, page in enumerate(doc):
