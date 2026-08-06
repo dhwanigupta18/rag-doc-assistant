@@ -91,23 +91,26 @@ flowchart TD
 ```
 
 ### Retrieval pipeline in detail
+
+```
 Question
-│
-├──► BM25 keyword search (cached per document) ──┐
-│ ├──► Reciprocal Rank Fusion
-└──► Dense vector search (Qdrant Cloud) ──────┘ │
-▼
-Cross-encoder rerank (Jina)
-│
-▼
-Top 5 chunks → LLM (Groq)
-│
-▼
-Structured JSON: {answer, citations}
-│
-▼
-Citations validated against chunks actually
-sent to the LLM — hallucinated IDs discarded
+   │
+   ├──► BM25 keyword search (cached per document)  ──┐
+   │                                                    ├──► Reciprocal Rank Fusion
+   └──► Dense vector search (Qdrant Cloud)      ──────┘         │
+                                                                  ▼
+                                                    Cross-encoder rerank (Jina)
+                                                                  │
+                                                                  ▼
+                                                     Top 5 chunks → LLM (Groq)
+                                                                  │
+                                                                  ▼
+                                          Structured JSON: {answer, citations}
+                                                                  │
+                                                                  ▼
+                                    Citations validated against chunks actually
+                                    sent to the LLM — hallucinated IDs discarded
+```
 
 ## Tech stack
 
@@ -183,46 +186,49 @@ python evaluate_retrieval.py
 ```
 
 ## Project structure
+
+```
 rag-doc-assistant/
 ├── backend/
-│ ├── app/
-│ │ ├── main.py FastAPI entrypoint
-│ │ ├── core/
-│ │ │ ├── config.py Settings (env-driven)
-│ │ │ ├── db.py Postgres session management
-│ │ │ ├── deps.py Auth dependency (see Known limitations)
-│ │ │ ├── vectorstore.py Qdrant client + collection setup
-│ │ │ └── storage.py Supabase Storage (S3-compatible) client
-│ │ ├── models/models.py SQLAlchemy models
-│ │ ├── schemas/schemas.py Pydantic request/response schemas
-│ │ ├── routers/ documents.py, chat.py, health.py
-│ │ └── services/
-│ │ ├── pdf_parser.py Text + bbox extraction (PyMuPDF)
-│ │ ├── chunker.py Merges blocks into retrieval-sized chunks
-│ │ ├── embeddings.py Jina AI embeddings client
-│ │ ├── bm25_index.py Per-document cached BM25 index
-│ │ ├── vector_search.py Qdrant similarity search
-│ │ ├── reranker.py Jina AI reranking client
-│ │ ├── retrieval.py Hybrid search orchestrator (RRF + rerank)
-│ │ ├── generation.py Groq LLM call + citation validation
-│ │ └── ingestion.py Full upload → chunks → vectors pipeline
-│ ├── evaluation/
-│ │ ├── eval_dataset.json Hand-labeled ground truth questions
-│ │ └── results.json Full evaluation output
-│ ├── evaluate_retrieval.py Evaluation script (BM25 vs vector vs hybrid)
-│ ├── test_ingestion.py Standalone parsing/chunking test script
-│ └── requirements.txt
+│   ├── app/
+│   │   ├── main.py                 FastAPI entrypoint
+│   │   ├── core/
+│   │   │   ├── config.py           Settings (env-driven)
+│   │   │   ├── db.py                Postgres session management
+│   │   │   ├── deps.py              Auth dependency (see Known limitations)
+│   │   │   ├── vectorstore.py       Qdrant client + collection setup
+│   │   │   └── storage.py           Supabase Storage (S3-compatible) client
+│   │   ├── models/models.py         SQLAlchemy models
+│   │   ├── schemas/schemas.py       Pydantic request/response schemas
+│   │   ├── routers/                 documents.py, chat.py, health.py
+│   │   └── services/
+│   │       ├── pdf_parser.py        Text + bbox extraction (PyMuPDF)
+│   │       ├── chunker.py           Merges blocks into retrieval-sized chunks
+│   │       ├── embeddings.py        Jina AI embeddings client
+│   │       ├── bm25_index.py        Per-document cached BM25 index
+│   │       ├── vector_search.py     Qdrant similarity search
+│   │       ├── reranker.py          Jina AI reranking client
+│   │       ├── retrieval.py         Hybrid search orchestrator (RRF + rerank)
+│   │       ├── generation.py        Groq LLM call + citation validation
+│   │       └── ingestion.py         Full upload → chunks → vectors pipeline
+│   ├── evaluation/
+│   │   ├── eval_dataset.json        Hand-labeled ground truth questions
+│   │   └── results.json             Full evaluation output
+│   ├── evaluate_retrieval.py        Evaluation script (BM25 vs vector vs hybrid)
+│   ├── test_ingestion.py            Standalone parsing/chunking test script
+│   └── requirements.txt
 └── frontend/
-├── app/
-│ ├── page.tsx Dashboard (upload + document list)
-│ └── documents/[id]/page.tsx Workspace (chat + PDF side by side)
-├── components/
-│ ├── upload/ UploadDropzone, DocumentList
-│ ├── chat/ ChatPanel, ChatMessage, CitationBadge
-│ └── pdf-viewer/ PdfViewer, HighlightOverlay
-└── lib/
-├── api.ts Typed backend API client
-└── types.ts Shared TypeScript types
+    ├── app/
+    │   ├── page.tsx                 Dashboard (upload + document list)
+    │   └── documents/[id]/page.tsx  Workspace (chat + PDF side by side)
+    ├── components/
+    │   ├── upload/                  UploadDropzone, DocumentList
+    │   ├── chat/                    ChatPanel, ChatMessage, CitationBadge
+    │   └── pdf-viewer/               PdfViewer, HighlightOverlay
+    └── lib/
+        ├── api.ts                   Typed backend API client
+        └── types.ts                 Shared TypeScript types
+```
 
 ## Local development setup
 
