@@ -315,6 +315,9 @@ here involved several real engineering pivots worth noting:
   Storage specifically to avoid a mandatory credit-card requirement on R2's
   free tier.
 
+For a detailed write-up of specific bugs encountered and how each was
+diagnosed, see [docs/DEPLOYMENT_CHALLENGES.md](docs/DEPLOYMENT_CHALLENGES.md).
+
 ## License
 
 Built as a final-year academic project.
